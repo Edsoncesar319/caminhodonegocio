@@ -1,9 +1,43 @@
-import { Search, ShoppingCart, Bell, Heart, ChevronLeft, ChevronRight, Star } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import Link from "next/link"
+"use client";
+
+import { useState } from "react";
+import { Search, ShoppingCart, Bell, Heart, ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import Link from "next/link";
 
 export default function Home() {
+  const [address, setAddress] = useState("");
+
+  const detectLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+
+          // Substitua pela sua chave de API do Google
+          const API_KEY = "SUA_CHAVE_DE_API";
+          const response = await fetch(
+            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${API_KEY}`
+          );
+          const data = await response.json();
+
+          if (data.results && data.results.length > 0) {
+            setAddress(data.results[0].formatted_address);
+          } else {
+            alert("Não foi possível encontrar o endereço.");
+          }
+        },
+        (error) => {
+          console.error("Erro ao obter localização:", error);
+          alert("Não foi possível detectar sua localização.");
+        }
+      );
+    } else {
+      alert("Geolocalização não é suportada pelo seu navegador.");
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="border-b">
@@ -12,16 +46,17 @@ export default function Home() {
             {/* Logo */}
             <Link href="/" className="flex items-center">
               <div className="relative w-14 h-10">
-                <svg viewBox="0 0 60 40" className="w-full h-full">
-                  <path d="M20 10 A10 10 0 1 0 20 30 A10 10 0 1 0 20 10 Z" fill="#00A3D7" />
-                  <path d="M40 10 A10 10 0 1 0 40 30 A10 10 0 1 0 40 10 Z" fill="#E6316F" />
-                  <path d="M30 10 A10 10 0 1 0 30 30 A10 10 0 1 0 30 10 Z" fill="#9E2F92" opacity="0.5" />
-                </svg>
+                <img
+                  src="logo.png"
+                  alt="Logo"
+                  className="w-full h-full object-contain"
+                />
               </div>
+              <span className="ml-2 text-black font-bold text-lg">Caminho do Negócio</span>
             </Link>
 
             {/* Search */}
-            <div className="relative flex-1 max-w-xl mx-4">
+            <div className="relative flex-1 max-w-2xl mx-5">
               <Input
                 type="text"
                 placeholder="Serviços, Eletrônicos, Eletrodomésticos, Celulares, Roupas..."
@@ -45,16 +80,38 @@ export default function Home() {
           {/* Location */}
           <div className="flex items-center mt-2 text-sm text-gray-700">
             <div className="flex items-center">
-              <svg className="h-5 w-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                onClick={detectLocation}
+                className="h-5 w-5 mr-1 cursor-pointer text-pink-500 hover:text-pink-600"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
                 />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
               </svg>
-              <span className="font-semibold">62800-000, Endereço</span>
-              <span className="ml-1">Cidade, Estado</span>
+              <span className="font-semibold">Endereço:</span>
+              <input
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Digite seu endereço"
+                className="ml-2 p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+              />
+              <button
+                className="ml-2 px-3 py-1 bg-pink-500 text-white rounded-md hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-500"
+              >
+                Enviar
+              </button>
             </div>
           </div>
 
@@ -435,6 +492,6 @@ export default function Home() {
         </div>
       </footer>
     </div>
-  )
+  );
 }
 
